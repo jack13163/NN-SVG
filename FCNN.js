@@ -67,6 +67,8 @@ function FCNN() {
     var link = g.selectAll(".link");
     var node = g.selectAll(".node");
     var text = g.selectAll(".text");
+	
+	var addIn = [];
 
     /////////////////////////////////////////////////////////////////////////////
                           ///////    Methods    ///////
@@ -121,7 +123,10 @@ function FCNN() {
     function redistribute({betweenNodesInLayer_=betweenNodesInLayer,
                            betweenLayers_=betweenLayers,
                            nnDirection_=nnDirection}={}) {
-
+		addIn.forEach((d, index, arr) => {
+			d.remove();
+		});
+		
         betweenNodesInLayer = betweenNodesInLayer_;
         betweenLayers = betweenLayers_;
         nnDirection = nnDirection_;
@@ -148,7 +153,38 @@ function FCNN() {
         link.attr("d", (d) => "M" + x(...indices_from_id(d.source)) + "," +
                                     y(...indices_from_id(d.source)) + ", " +
                                     x(...indices_from_id(d.target)) + "," +
-                                    y(...indices_from_id(d.target)));
+                                    y(...indices_from_id(d.target)))
+																		
+		// 添加说明文字
+		let disc = ["性别", "年龄", "BMI", "空腹C-肽", "糖尿病病程时间", "糖化血红蛋白", "是否使用降糖药", "是否使用胰岛素", "空腹血糖", "糖尿病病程时间", "腰围"];
+		let lbl = ["病情得到控制", "病情没有好转"];
+		disc.forEach((d, index, arr) => {
+			addIn.push(g.append("text")
+			.attr("x", x(0, index) - 110)
+			.attr("y", y(0, index) + 3)
+			.attr("fill","red")
+			.attr("font-size",12)
+			.text(d));
+		});
+		lbl.forEach((d, index, arr) => {
+			addIn.push(g.append("text")
+			.attr("x", x(layer_widths.length - 1,index) + 25)
+			.attr("y", y(layer_widths.length - 1,index) + 3)
+			.attr("fill","red")
+			.attr("font-size",12)
+			.text(d))
+		});
+		
+		// 添加权重文字
+		g.selectAll(".text").remove();
+		graph.links.forEach((d, index, arr) => {
+				addIn.push(g.append("text")
+				.attr("x", (x(...indices_from_id(d.source)) + x(...indices_from_id(d.target))) / 2)
+				.attr("y",(y(...indices_from_id(d.source)) + y(...indices_from_id(d.target))) / 2)
+				.attr("fill","red")
+				.attr("font-size",9)
+				.text(d.weight.toFixed(2)));
+		});
 
         text.attr("x", function(d) { return (nnDirection === 'right' ? x(d.layer, d.node_index) - textWidth/2 : w/2 + largest_layer_width/2 + 20 ); })
             .attr("y", function(d) { return (nnDirection === 'right' ? h/2 + largest_layer_width/2 + 20       : y(d.layer, d.node_index) ); });

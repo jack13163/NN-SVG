@@ -83,7 +83,10 @@
                     <div class="card-header">
                         <a class="pull-right" data-toggle="collapse" href="#collapsable" role="button"><i class="fa"></i></a>
                         <h1>NN-SVG</h1>
-                        <p>Publication-ready NN-architecture schematics. <a id="download" href="#">Download SVG</a></p>
+                        <p>Publication-ready NN-architecture schematics. 
+						<a id="download" href="#">Download SVG</a>
+						<a id="downloadPNG" href="#">Download PNG</a>
+						</p>
 
                         <nav>
                             <div class="nav nav-tabs card-header-tabs" role="tablist">
@@ -208,7 +211,7 @@
                                 <div class="row entry">
                                     <div class="input-group mb-2 mr-sm-2 col-4">
                                         <button class="btn btn-secondary btn-remove input-group-prepend"><span class="fa fa-minus"></span></button>
-                                        <input type="number" class="form-control" name="numberOfNodes" step="1" value="16" />
+                                        <input type="number" class="form-control" name="numberOfNodes" step="1" value="11" />
                                     </div>
                                     <input type="range" class="form-control col-4" name="betweenNodesInLayer" min="0" max="100" step="1" value="20" style="position: relative; top: -4px;">
                                 </div>
@@ -229,7 +232,7 @@
                                 <div class="row entry">
                                     <div class="input-group mb-2 mr-sm-2 col-4">
                                         <button class="btn btn-secondary btn-remove input-group-prepend"><span class="fa fa-minus"></span></button>
-                                        <input type="number" class="form-control" name="numberOfNodes" step="1" value="1" />
+                                        <input type="number" class="form-control" name="numberOfNodes" step="1" value="2" />
                                     </div>
                                     <input type="range" class="form-control col-4" name="betweenNodesInLayer" min="0" max="100" step="1" value="20" style="position: relative; top: -4px;">
                                 </div>
@@ -281,6 +284,7 @@ function restart() {
 }
 
 restart();
+
 
 /////////////////////////////////////////////////////////////////////////////
                 ///////    Select Styling    ///////
@@ -344,18 +348,42 @@ $(document).on('change', "input[name='numberOfNodes']", restart);
 
 $(document).on('change', "input[name='betweenNodesInLayer']", restart);  // fix this so we only redistribute
 
+// 随机初始化权重
 $(document).on('click', '#newRandomWeights', function() {
     link = fcnn.link.data([]);
     fcnn.link.exit().remove();
     restart();
 });
 
+// 下载SVG
 d3.select("#download").on("click", function() {
     // ga('send', 'event', 'downloadSVG', 'FCNN');
 
     d3.select(this)
       .attr("href", 'data:application/octet-stream;base64,' + btoa(unescape(encodeURIComponent(d3.select("#graph-container").html()))))
       .attr("download", "nn.svg")
+})
+
+// 下载PNG
+ d3.select("#downloadPNG").on("click", function() {
+    var serializer = new XMLSerializer();
+    var source = '<?xml version="1.0" standalone="no"?>\r\n' + d3.select("#graph-container").html();
+    var image = new Image;
+    image.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+    var canvas = document.createElement("canvas");
+    canvas.width = window.screen.availWidth;
+    canvas.height = window.screen.availHeight;
+    var context = canvas.getContext("2d");
+    context.fillStyle = '#fff';//#fff设置保存后的PNG 是白色的  
+    context.fillRect(0, 0, window.screen.availWidth, window.screen.availHeight);
+    image.onload = function() {
+		context.drawImage(image, 0, 0);  
+		var a = document.createElement("a");  
+		var filename = $('#architecture').find('input[name="numberOfNodes"]').map((i,el) => $(el).val()).get().filter(input => $.isNumeric(input)).map(s => parseInt(s)).join("-");
+		a.download = filename + ".png";  
+		a.href = canvas.toDataURL("image/png");  
+		a.click();  
+    }; 
 })
 
     </script>
